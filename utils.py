@@ -2,10 +2,15 @@ import csv
 import models
 import os
 import yaml
+
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, Alignment
 
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+
 __author__ = 'sebastian'
+
 
 # Loads some names from config.yaml
 with open("config.yaml", 'r') as cfgyaml:
@@ -14,11 +19,28 @@ with open("config.yaml", 'r') as cfgyaml:
     except yaml.YAMLError as exc:
         print(exc)
 
+# Drive authorization
+scope = ['https://spreadsheets.google.com/feeds']
+key_filename = "key-for-gspread.json"
+credentials = ServiceAccountCredentials.from_json_keyfile_name(key_filename, scope)
+gc = gspread.authorize(credentials)
+
 
 def get_sheetnames_by_date(filename, filter_key=""):
     wb = load_workbook(filename, read_only=True)
     sheetnames = [s for s in wb.sheetnames if filter_key in s]
     namesdates = [(name, load_tournament_xlsx(filename, name).date) for name in sheetnames]
+    namesdates.sort(key=lambda p: p[1])
+
+    return [name for name, date in namesdates]
+
+
+def get_gs_sheetnames_by_date(spreadsheet_id, filter_key=""):
+    wb = gc.open_by_key(spreadsheet_id)
+    sheetnames = [s.title for s in wb.worksheets() if filter_key in s.title]
+    # FIXME read tournaments dates
+    # namesdates = [(name, load_tournament_xlsx(filename, name).date) for name in sheetnames]
+    namesdates = [(name, 1) for name in sheetnames]
     namesdates.sort(key=lambda p: p[1])
 
     return [name for name, date in namesdates]
