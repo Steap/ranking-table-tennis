@@ -38,9 +38,7 @@ def get_sheetnames_by_date(filename, filter_key=""):
 def get_sheetnames_by_date_gs(spreadsheet_id, filter_key=""):
     wb = gc.open_by_key(spreadsheet_id)
     sheetnames = [s.title for s in wb.worksheets() if filter_key in s.title]
-    # FIXME read tournaments dates
-    # namesdates = [(name, load_tournament_xlsx(filename, name).date) for name in sheetnames]
-    namesdates = [(name, 1) for name in sheetnames]
+    namesdates = [(name, load_tournament_gs(spreadsheet_id, name).date) for name in sheetnames]
     namesdates.sort(key=lambda p: p[1])
 
     return [name for name, date in namesdates]
@@ -79,8 +77,8 @@ def load_sheet_gs(spreadsheet_id, sheetname, first_row=1):
 
     list_to_return = ws.get_all_values()  # Exclude null rows and columns
 
-    print(ws.row_count, ws.col_count)                   # Dimensions of sheet including null rows and columns
-    print(len(list_to_return), len(list_to_return[0]))  # Dimensions of sheet excluding null rows and columns
+    # print(ws.row_count, ws.col_count)                   # Dimensions of sheet including null rows and columns
+    # print(len(list_to_return), len(list_to_return[0]))  # Dimensions of sheet excluding null rows and columns
 
     return list_to_return[first_row:]
 
@@ -170,12 +168,21 @@ def save_ranking_sheet(filename, sheetname, ranking, players, overwrite=False):
     wb.save(filename)
 
 
-def load_ranking_sheet(filename, sheetname):
+def load_ranking_sheet(filename, sheet_name):
     """Load a ranking in a xlxs sheet and return a Ranking object"""
     # TODO check if date is being read properly
-    raw_ranking = load_sheet_workbook(filename, sheetname, first_row=0)
-    ranking = models.Ranking(raw_ranking[0][1], raw_ranking[1][1], raw_ranking[2][1])
-    ranking.load_list([[rr[0], rr[2], rr[3]] for rr in raw_ranking[4:]])
+    return load_ranking_list(load_sheet_workbook(filename, sheet_name, first_row=0))
+
+
+def load_ranking_sheet_gs(spreadsheet_id, sheet_name):
+    """Load a ranking in a spreadsheet sheet and return a Ranking object"""
+    # TODO check if date is being read properly
+    return load_ranking_list(load_sheet_gs(spreadsheet_id, sheet_name, first_row=0))
+
+
+def load_ranking_list(raw_ranking_list):
+    ranking = models.Ranking(raw_ranking_list[0][1], raw_ranking_list[1][1], raw_ranking_list[2][1])
+    ranking.load_list([[rr[0], rr[2], rr[3]] for rr in raw_ranking_list[4:]])
     return ranking
 
 
@@ -190,6 +197,11 @@ def load_tournament_csv(filename):
 def load_tournament_xlsx(filename, sheet_name):
     """Load a tournament xlsx sheet and return a Tournament object"""
     return load_tournament_list(load_sheet_workbook(filename, sheet_name, 0))
+
+
+def load_tournament_gs(spreadsheet_id, sheet_name):
+    """Load a tournament xlsx sheet and return a Tournament object"""
+    return load_tournament_list(load_sheet_gs(spreadsheet_id, sheet_name, 0))
 
 
 def load_tournament_list(tournament_list):
