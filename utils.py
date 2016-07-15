@@ -35,7 +35,7 @@ def get_sheetnames_by_date(filename, filter_key=""):
     return [name for name, date in namesdates]
 
 
-def get_gs_sheetnames_by_date(spreadsheet_id, filter_key=""):
+def get_sheetnames_by_date_gs(spreadsheet_id, filter_key=""):
     wb = gc.open_by_key(spreadsheet_id)
     sheetnames = [s.title for s in wb.worksheets() if filter_key in s.title]
     # FIXME read tournaments dates
@@ -70,6 +70,18 @@ def load_sheet_workbook(filename, sheetname, first_row=1):
                 aux_row.append(cell.value)
         if not empty_row:
             list_to_return.append(aux_row[:max_column])
+    return list_to_return[first_row:]
+
+
+def load_sheet_gs(spreadsheet_id, sheetname, first_row=1):
+    wb = gc.open_by_key(spreadsheet_id)
+    ws = wb.worksheet(sheetname)
+
+    list_to_return = ws.get_all_values()  # Exclude null rows and columns
+
+    print(ws.row_count, ws.col_count)                   # Dimensions of sheet including null rows and columns
+    print(len(list_to_return), len(list_to_return[0]))  # Dimensions of sheet excluding null rows and columns
+
     return list_to_return[first_row:]
 
 
