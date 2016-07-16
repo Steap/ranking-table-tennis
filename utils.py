@@ -119,6 +119,45 @@ def save_sheet_workbook(filename, sheetname, headers, list_to_save, overwrite=Fa
     wb.save(filename)
 
 
+def save_sheet_gs(spreadsheet_id, sheet_name, headers, rows_to_save):
+    """ Saves headers and rows_to_save into given sheet_name.
+        If sheet_name does not exist, it will be created. """
+
+    wb = gc.open_by_key(spreadsheet_id)
+    num_cols = len(headers)
+    num_rows = len(rows_to_save) + 1  # +1 because of header
+
+    # Overwrites an existing sheet or creates a new one
+    if sheet_name in [ws.title for ws in wb.worksheets()]:
+        ws = wb.worksheet(sheet_name)
+        ws.resize(rows=num_rows, cols=num_cols)
+    else:
+        ws = wb.add_worksheet(title=sheet_name, rows=num_rows, cols=num_cols)
+    # TODO create a new spreadsheet if it is not found
+
+    # Concatenation of all cells values to be updated in batch mode
+    cell_list = ws.range("A1:" + ws.get_addr_int(row=num_rows, col=num_cols))
+    for i, value in enumerate(headers + [v for row in rows_to_save for v in row]):
+        cell_list[i].value = value
+
+    ws.update_cells(cell_list)
+
+    # FIXME add bold to header
+    # for col in range(1, len(ws.row_values())+1):
+    #     cell = ws.cell(column=col, row=1)
+    #     cell.font = Font(bold=True)
+
+    # # Automatically adjust width of columns to its content
+    # # TODO add width adaptation, now it breaks on datetime
+    # dims = {}
+    # for row in ws.rows:
+    #     for cell in row:
+    #         if cell.value:
+    #             dims[cell.column] = max((dims.get(cell.column, 0), len(str(cell.value))))
+    # for col, value in dims.items():
+    #     ws.column_dimensions[col].width = value
+
+
 def save_ranking_sheet(filename, sheetname, ranking, players, overwrite=False):
     if os.path.isfile(filename):
         wb = load_workbook(filename)
@@ -168,6 +207,60 @@ def save_ranking_sheet(filename, sheetname, ranking, players, overwrite=False):
     wb.save(filename)
 
 
+def save_ranking_sheet_gs(spreadsheet_id, sheet_name, ranking, players):
+    """ Saves ranking into given sheet_name.
+        If sheet_name does not exist, it will be created. """
+
+    wb = gc.open_by_key(spreadsheet_id)
+
+    headers = ["PID", "Total puntos", "Nivel de juego", "Puntos bonus",
+               "Jugador", "Asociación", "Ciudad", "Jugador activo"]
+    rows_to_save = [[e.pid, e.get_total(), e.rating, e.bonus, players[e.pid].name, players[e.pid].association,
+                     players[e.pid].city, str(ranking.tid - players[e.pid].last_tournament < 2)] for e in ranking]
+    # for row in sorted(list_to_save, key=lambda l: (l[-1], l[1]), reverse=True):  # to use Jugador activo
+    rows_to_save.sort(key=lambda l: l[1], reverse=True)
+
+    num_cols = len(headers)
+    num_rows = len(rows_to_save) + 1 + 3  # +1 because of header + 3 because of tournament metadata
+
+    # Overwrites an existing sheet or creates a new one
+    if sheet_name in [ws.title for ws in wb.worksheets()]:
+        ws = wb.worksheet(sheet_name)
+        ws.resize(rows=num_rows, cols=num_cols)
+    else:
+        ws = wb.add_worksheet(title=sheet_name, rows=num_rows, cols=num_cols)
+    # TODO create a new spreadsheet if it is not found
+
+    ws.update_acell("A1", "Nombre del torneo")
+    ws.update_acell("B1", ranking.tournament_name)
+    # TODO ws.merge_cells('B1:G1')
+    ws.update_acell("A2", "Fecha")
+    ws.update_acell("B2", ranking.date)
+    # TODO ws.merge_cells('B2:G2')
+    ws.update_acell("A3", "Lugar")
+    ws.update_acell("B3", ranking.location)
+    # TODO ws.merge_cells('B3:G3')
+
+    # FIXME bold and center
+    # to_bold = ["A1", "A2", "A3",
+    #            "A4", "B4", "C4", "D4", "E4", "F4", "G4", "H4"]
+    # to_center = to_bold + ["B1", "B2", "B3"]
+    #
+    # for colrow in to_bold:
+    #     cell = ws.cell(colrow)
+    #     cell.font = Font(bold=True)
+    # for colrow in to_center:
+    #     cell = ws.cell(colrow)
+    #     cell.alignment = Alignment(horizontal='center')
+
+    # Concatenation of all cells values to be updated in batch mode
+    cell_list = ws.range("A4:" + ws.get_addr_int(row=num_rows, col=num_cols))
+    for i, value in enumerate(headers + [v for row in rows_to_save for v in row]):
+        cell_list[i].value = value
+
+    ws.update_cells(cell_list)
+
+
 def load_ranking_sheet(filename, sheet_name):
     """Load a ranking in a xlxs sheet and return a Ranking object"""
     # TODO check if date is being read properly
@@ -182,7 +275,7 @@ def load_ranking_sheet_gs(spreadsheet_id, sheet_name):
 
 def load_ranking_list(raw_ranking_list):
     ranking = models.Ranking(raw_ranking_list[0][1], raw_ranking_list[1][1], raw_ranking_list[2][1])
-    ranking.load_list([[rr[0], rr[2], rr[3]] for rr in raw_ranking_list[4:]])
+    ranking.load_list([[int(rr[0]), int(rr[2]), int(rr[3])] for rr in raw_ranking_list[4:]])
     return ranking
 
 
