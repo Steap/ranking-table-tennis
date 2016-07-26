@@ -3,6 +3,7 @@ io:
     tournaments_filename: Liga Dos Orillas 2016 - Categorías Mayores - Partidos.xlsx
     rankings_filename: Liga Dos Orillas 2016 - Categorías Mayores - Rankings Crudos.xlsx
     log_filename: log.xlsx
+    tournaments_spreadsheet_id: 184sk11zP842NDkZiINIn83n5xh5x8BxtBr_2jX3-ssk
 
 sheetname:
     players: Jugadores

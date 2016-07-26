@@ -15,21 +15,21 @@ __author__ = 'sebastian'
 # and saves the result into the same xlsx
 ##########################################
 
-xlsx_file = cfg["io"]["data_folder"] + cfg["io"]["tournaments_filename"]
+spreadsheet_id = cfg["io"]["tournaments_spreadsheet_id"]
 
 # Listing tournament sheetnames by increasing date
-tournament_sheetnames = utils.get_sheetnames_by_date(xlsx_file, cfg["sheetname"]["tournaments_key"])
+tournament_sheetnames = utils.get_sheetnames_by_date_gs(spreadsheet_id, cfg["sheetname"]["tournaments_key"])
 
 # Loading and completing the players list
 players = models.PlayersList()
-players.load_list(utils.load_sheet_workbook(xlsx_file, cfg["sheetname"]["players"]))
+players.load_list(utils.load_sheet_gs(spreadsheet_id, cfg["sheetname"]["players"]))
 
 # Loading initial ranking and adding new players with 0
-ranking = utils.load_ranking_sheet(xlsx_file, cfg["sheetname"]["initial_ranking"])
+ranking = utils.load_ranking_sheet_gs(spreadsheet_id, cfg["sheetname"]["initial_ranking"])
 
 for tid, tournament_sheetname in enumerate(tournament_sheetnames):
     # Loading tournament info
-    tournament = utils.load_tournament_xlsx(xlsx_file, tournament_sheetname)
+    tournament = utils.load_tournament_gs(spreadsheet_id, tournament_sheetname)
 
     for name in tournament.get_players_names():
         if players.get_pid(name) is None:
@@ -50,10 +50,9 @@ for tid, tournament_sheetname in enumerate(tournament_sheetnames):
         players[pid].last_tournament = tid
 
 # Saving complete list of players, including new ones
-utils.save_sheet_workbook(xlsx_file, cfg["sheetname"]["players"],
-                          [cfg["labels"][key] for key in ["PID", "Player", "Association", "City", "Last Tournament"]],
-                          sorted(players.to_list(), key=lambda l: l[1]),
-                          True)
+utils.save_sheet_gs(spreadsheet_id, cfg["sheetname"]["players"],
+                    [cfg["labels"][key] for key in ["PID", "Player", "Association", "City", "Last Tournament"]],
+                    sorted(players.to_list(), key=lambda l: l[1]))
 
 # Saving initial rankings for all known players
-utils.save_ranking_sheet(xlsx_file, cfg["sheetname"]["initial_ranking"], ranking, players, True)
+utils.save_ranking_sheet_gs(spreadsheet_id, cfg["sheetname"]["initial_ranking"], ranking, players)
