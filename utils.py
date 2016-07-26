@@ -213,8 +213,8 @@ def save_ranking_sheet_gs(spreadsheet_id, sheet_name, ranking, players):
 
     wb = gc.open_by_key(spreadsheet_id)
 
-    headers = ["PID", "Total puntos", "Nivel de juego", "Puntos bonus",
-               "Jugador", "Asociación", "Ciudad", "Jugador activo"]
+    headers = [cfg["labels"][key] for key in ["PID", "Total Points", "Rating Points", "Bonus Points",
+                                              "Player", "Association", "City", "Active Player"]]
     rows_to_save = [[e.pid, e.get_total(), e.rating, e.bonus, players[e.pid].name, players[e.pid].association,
                      players[e.pid].city, str(ranking.tid - players[e.pid].last_tournament < 2)] for e in ranking]
     # for row in sorted(list_to_save, key=lambda l: (l[-1], l[1]), reverse=True):  # to use Jugador activo
