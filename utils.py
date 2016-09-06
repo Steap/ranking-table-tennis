@@ -19,6 +19,13 @@ with open("config.yaml", 'r') as cfgyaml:
     except yaml.YAMLError as exc:
         print(exc)
 
+# Loads gspreadsheet ids from gspreadids.yaml
+with open("config/gspreadids.yaml", 'r') as gsidsyaml:
+    try:
+        gsids = yaml.load(gsidsyaml)
+    except yaml.YAMLError as exc:
+        print(exc)
+
 # Drive authorization
 scope = ['https://spreadsheets.google.com/feeds']
 key_filename = "key-for-gspread.json"
@@ -198,7 +205,7 @@ def save_ranking_sheet(filename, sheetname, ranking, players, overwrite=False):
         cell.alignment = Alignment(horizontal='center')
 
     list_to_save = [[e.pid, e.get_total(), e.rating, e.bonus, players[e.pid].name, players[e.pid].association,
-                     players[e.pid].city, str(ranking.tid - players[e.pid].last_tournament < 2)] for e in ranking]
+                     players[e.pid].city, str(ranking.tid - players[e.pid].last_tournament < 6)] for e in ranking]
 
     # for row in sorted(list_to_save, key=lambda l: (l[-1], l[1]), reverse=True):  # to use Jugador activo
     for row in sorted(list_to_save, key=lambda l: l[1], reverse=True):
@@ -216,7 +223,7 @@ def save_ranking_sheet_gs(spreadsheet_id, sheet_name, ranking, players):
     headers = [cfg["labels"][key] for key in ["PID", "Total Points", "Rating Points", "Bonus Points",
                                               "Player", "Association", "City", "Active Player"]]
     rows_to_save = [[e.pid, e.get_total(), e.rating, e.bonus, players[e.pid].name, players[e.pid].association,
-                     players[e.pid].city, str(ranking.tid - players[e.pid].last_tournament < 2)] for e in ranking]
+                     players[e.pid].city, str(ranking.tid - players[e.pid].last_tournament < 6)] for e in ranking]
     # for row in sorted(list_to_save, key=lambda l: (l[-1], l[1]), reverse=True):  # to use Jugador activo
     rows_to_save.sort(key=lambda l: l[1], reverse=True)
 

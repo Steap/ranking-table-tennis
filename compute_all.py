@@ -1,6 +1,6 @@
 import utils
 import models
-from utils import cfg
+from utils import cfg, gsids
 
 __author__ = 'sebastian'
 
@@ -16,9 +16,9 @@ __author__ = 'sebastian'
 # and saves the result into the same xlsx
 ##########################################
 
-spreadsheet_id = cfg["io"]["tournaments_spreadsheet_id"]
-ranking_spreadsheet_id = cfg["io"]["ranking_spreadsheet_id"]
-log_spreadsheet_id = cfg["io"]["log_spreadsheet_id"]
+spreadsheet_id = gsids["tournaments_spreadsheet_id"]
+ranking_spreadsheet_id = gsids["ranking_spreadsheet_id"]
+log_spreadsheet_id = gsids["log_spreadsheet_id"]
 
 # Listing tournament sheetnames by increasing date
 tournament_sheetnames = utils.get_sheetnames_by_date_gs(spreadsheet_id, cfg["sheetname"]["tournaments_key"])
