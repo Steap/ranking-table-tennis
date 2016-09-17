@@ -32,6 +32,7 @@ labels:
     Date: Fecha
     Location: Lugar
     Tournament name: Nombre del torneo
+    Tournament: Torneo
 
 roundnames:
     final: final
@@ -40,3 +41,6 @@ roundnames:
     third: tercero
     fourth: cuarto
     third place playoff: tercer puesto
+
+aux:
+    flag add bonus: to_add_bonus_points

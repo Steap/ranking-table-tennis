@@ -42,32 +42,37 @@ for tid, tournament_sheetname in enumerate(tournament_sheetnames):
             cfg["sheetname"]["tournaments_key"], cfg["sheetname"]["rankings_key"]))
 
     # Load initial rankings for new players
+    pid_new_players = []
     for name in tournament.get_players_names():
         pid = players.get_pid(name)
         if old_ranking.get_entry(pid) is None:
             old_ranking.add_entry(initial_ranking[pid])
+            pid_new_players.append(pid)
 
     # Create list of players that partipate in the tournament
     pid_participation_list = [players.get_pid(name) for name in tournament.get_players_names()]
 
+    # Get the best round for each player in each category
+    # Formatted like: best_rounds[(category, pid)] = best_round_value
+    aux_best_rounds = tournament.compute_best_rounds()
+    best_rounds = {(categ, players.get_pid(name)): aux_best_rounds[categ, name]
+                   for categ, name in aux_best_rounds.keys()}
+
     # Log current tournament as the last played tournament
-    for pid in pid_participation_list:
-        players[pid].last_tournament = tid
+    # Also, best rounds reached in each category are saved into corresponding history
+    players.update_histories(tid, best_rounds)
 
     # Creating matches list with pid
     matches = []
     for match in tournament.matches:
-        if match.winner_name == "to_add_bonus_points":
-            matches.append([-1, players.get_pid(match.loser_name),
-                            match.round, match.category])
-        else:
+        if match.winner_name != cfg["aux"]["flag add bonus"]:
             matches.append([players.get_pid(match.winner_name), players.get_pid(match.loser_name),
                             match.round, match.category])
 
     # TODO make a better way to copy models
     new_ranking = models.Ranking(tournament.name, tournament.date, tournament.location, tid)
     assigned_points_per_match = new_ranking.compute_new_ratings(old_ranking, matches)
-    assigned_points_per_best_round = new_ranking.compute_bonus_points(matches)
+    assigned_points_per_best_round = new_ranking.compute_bonus_points(best_rounds)
     assigned_participation_points = new_ranking.add_participation_points(pid_participation_list)
 
     # Saving new ranking
@@ -95,3 +100,20 @@ for tid, tournament_sheetname in enumerate(tournament_sheetnames):
                                                      cfg["sheetname"]["bonus_details_key"]),
                         [cfg["labels"][key] for key in ["Player", "Bonus Points", "Best Round", "Category"]],
                         points_log_to_save + participation_points_log_to_save)
+
+# Saving complete histories of players
+histories = []
+for player in sorted(players, key=lambda l: l.name):
+    histories.append([player.name, "", "", ""])
+    old_cat = ""
+    for cat, tid, best_round in player.sorted_history:
+        if cat == old_cat:
+            cat = ""
+        else:
+            old_cat = cat
+        histories.append(["", cat, best_round, " ".join(tournament_sheetnames[tid].split()[1:])])
+
+
+utils.save_sheet_gs(spreadsheet_id, "Historiales",
+                    [cfg["labels"][key] for key in ["Player", "Category", "Best Round", "Tournament"]],
+                    histories)
