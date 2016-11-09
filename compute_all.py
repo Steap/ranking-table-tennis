@@ -113,7 +113,6 @@ for player in sorted(players, key=lambda l: l.name):
             old_cat = cat
         histories.append(["", cat, best_round, " ".join(tournament_sheetnames[tid].split()[1:])])
 
-
 utils.save_sheet_gs(spreadsheet_id, "Historiales",
                     [cfg["labels"][key] for key in ["Player", "Category", "Best Round", "Tournament"]],
                     histories)

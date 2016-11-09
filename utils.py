@@ -77,15 +77,26 @@ def load_sheet_workbook(filename, sheetname, first_row=1):
             list_to_return.append(aux_row[:max_column])
     return list_to_return[first_row:]
 
+# Dictionary to cache sheets on the same session and don't read them again
+cache_sheets = dict()
+
 
 def load_sheet_gs(spreadsheet_id, sheetname, first_row=1):
-    wb = gc.open_by_key(spreadsheet_id)
-    ws = wb.worksheet(sheetname)
+    """ Load a sheet and translated into a list.
+    It won't read a sheet twice in the same session. They are chached on first read.
+    """
+    if (spreadsheet_id, sheetname) in cache_sheets:
+        list_to_return = cache_sheets[(spreadsheet_id, sheetname)]
+    else:
+        wb = gc.open_by_key(spreadsheet_id)
+        ws = wb.worksheet(sheetname)
 
-    list_to_return = ws.get_all_values()  # Exclude null rows and columns
+        list_to_return = ws.get_all_values()  # Exclude null rows and columns
 
-    # print(ws.row_count, ws.col_count)                   # Dimensions of sheet including null rows and columns
-    # print(len(list_to_return), len(list_to_return[0]))  # Dimensions of sheet excluding null rows and columns
+        # print(ws.row_count, ws.col_count)                   # Dimensions of sheet including null rows and columns
+        # print(len(list_to_return), len(list_to_return[0]))  # Dimensions of sheet excluding null rows and columns
+
+        cache_sheets[(spreadsheet_id, sheetname)] = list_to_return
 
     return list_to_return[first_row:]
 
