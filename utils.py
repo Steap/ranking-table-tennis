@@ -52,6 +52,7 @@ def get_sheetnames_by_date_gs(spreadsheet_id, filter_key=""):
 
 
 def load_sheet_workbook(filename, sheetname, first_row=1):
+    print(">Reading\t", sheetname, "\tfrom\t", filename)
     wb = load_workbook(filename, read_only=True)
     ws = wb.get_sheet_by_name(sheetname)
 
@@ -85,6 +86,7 @@ def load_sheet_gs(spreadsheet_id, sheetname, first_row=1):
     """ Load a sheet and translated into a list.
     It won't read a sheet twice in the same session. They are chached on first read.
     """
+    print(">Reading\t", sheetname, "\tfrom\t", spreadsheet_id)
     if (spreadsheet_id, sheetname) in cache_sheets:
         list_to_return = cache_sheets[(spreadsheet_id, sheetname)]
     else:
@@ -102,6 +104,7 @@ def load_sheet_gs(spreadsheet_id, sheetname, first_row=1):
 
 
 def save_sheet_workbook(filename, sheetname, headers, list_to_save, overwrite=False):
+    print("<<<Saving\t", sheetname, "\tin\t", filename)
     if os.path.isfile(filename):
         wb = load_workbook(filename)
         if overwrite and sheetname in wb:
@@ -140,7 +143,7 @@ def save_sheet_workbook(filename, sheetname, headers, list_to_save, overwrite=Fa
 def save_sheet_gs(spreadsheet_id, sheet_name, headers, rows_to_save):
     """ Saves headers and rows_to_save into given sheet_name.
         If sheet_name does not exist, it will be created. """
-
+    print("<<<Saving\t", sheet_name, "\tin\t", spreadsheet_id)
     wb = gc.open_by_key(spreadsheet_id)
     num_cols = len(headers)
     num_rows = len(rows_to_save) + 1  # +1 because of header
@@ -177,6 +180,7 @@ def save_sheet_gs(spreadsheet_id, sheet_name, headers, rows_to_save):
 
 
 def save_ranking_sheet(filename, sheetname, ranking, players, overwrite=False):
+    print("<<<Saving\t", sheetname, "\tin\t", filename)
     if os.path.isfile(filename):
         wb = load_workbook(filename)
         if overwrite and sheetname in wb:
@@ -228,7 +232,7 @@ def save_ranking_sheet(filename, sheetname, ranking, players, overwrite=False):
 def save_ranking_sheet_gs(spreadsheet_id, sheet_name, ranking, players):
     """ Saves ranking into given sheet_name.
         If sheet_name does not exist, it will be created. """
-
+    print("<<<Saving\t", sheet_name, "\tin\t", spreadsheet_id)
     wb = gc.open_by_key(spreadsheet_id)
 
     headers = [cfg["labels"][key] for key in ["PID", "Total Points", "Rating Points", "Bonus Points",
