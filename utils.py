@@ -26,14 +26,16 @@ def get_sheetnames_by_date(filename, filter_key=""):
 
 def load_sheet_workbook(filename, sheetname, first_row=1):
     print(">Reading\t", sheetname, "\tfrom\t", filename)
-    wb = load_workbook(filename, read_only=True)
+    #FIXME keep read_only 
+    wb = load_workbook(filename) #, read_only=True)
     ws = wb.get_sheet_by_name(sheetname)
 
-    ws.calculate_dimension(force=True)
-    # print(ws.dimensions)
+    ws.calculate_dimension()#force=True)
+    
+#    print(dir(ws), ws.dimensions, ws.max_column)
 
     list_to_return = []
-    max_column = 0
+    max_column = 'A'
     for row in ws.rows:
         aux_row = []
         empty_row = True
@@ -48,7 +50,7 @@ def load_sheet_workbook(filename, sheetname, first_row=1):
                 empty_row = False
                 aux_row.append(cell.value)
         if not empty_row:
-            list_to_return.append(aux_row[:max_column])
+            list_to_return.append(aux_row[:ws.max_column])
     return list_to_return[first_row:]
 
 
